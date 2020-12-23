@@ -41,12 +41,16 @@ class TreeItem(object):
 def create_tree(path: str) -> TreeItem:
     """Creates a tree-like representation of the directory at `path`."""
 
-    # Base Case: we have a file and not a directory, or we have an
-    # empty directory
     rpath = os.path.realpath(path)
     name = os.path.split(rpath)[1]
-    if not os.path.isdir(rpath) or not os.listdir(rpath):
+    
+    # Base Cases: we have a file and not a directory, or we have an
+    # empty directory
+    if not os.path.isdir(rpath):
         ti = TreeItem(name=name, isdir=False, children=[])
+        return ti
+    elif not os.listdir(rpath):
+        ti = TreeItem(name=name, isdir=True, children=[])
         return ti
 
     # Recursive case: directory with one or more children
