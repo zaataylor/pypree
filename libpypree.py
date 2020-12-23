@@ -35,7 +35,7 @@ class TreeItem(object):
         pass
 
     def __str__(self):
-        return print_tree(self, indent=0)
+        return tree_to_string(self, indent=0)
 
 
 def create_tree(path: str) -> TreeItem:
@@ -66,16 +66,16 @@ def create_tree(path: str) -> TreeItem:
 
     return TreeItem(name=name, isdir=True, children=children)
 
-def print_tree(ti: TreeItem, indent: int) -> str:
-    """Prints a representation of a TreeItem."""
+def tree_to_string(ti: TreeItem, indent: int) -> str:
+    """Creates a string representation of a TreeItem."""
     indent_val = indent
     tree_string = ""
     # Case: root TreeItem
     if indent_val == 0:
         tree_string += ti.name + "\n"
-        tree_string += print_tree(ti=ti, indent=indent + 1)
+        tree_string += tree_to_string(ti=ti, indent=indent + 1)
     else:
-        # one less than the total number of indents, so that
+        # use one less than the total number of indents, so that
         # the special "└──" or "├── " will fill the last spot
         vert_bars = "│   " * (indent_val - 1)
         for index, child in enumerate(ti.children):
@@ -86,7 +86,7 @@ def print_tree(ti: TreeItem, indent: int) -> str:
             # other children have "├──" 
                 tree_string += vert_bars + "├── " + child.name + "\n"
 
-            tree_string += print_tree(ti=child, indent=indent + 1)
+            tree_string += tree_to_string(ti=child, indent=indent + 1)
 
     return tree_string
 
