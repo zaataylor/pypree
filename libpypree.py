@@ -3,13 +3,14 @@ import argparse # CLI
 import sys # get command-line arguments with sys.argv
 from typing import List, Iterator # type hinting
 
-argparser = argparse.ArgumentParser(description="pypree - A Python partial tree command implementation")
+argparser = argparse.ArgumentParser(description="pypree - A partial Python tree command implementation")
 argparser.add_argument("-p", 
                         "--path",
                         metavar="PATH",
                         nargs="+",
                         default=".",
-                        help="Path(s) to start building the tree(s) at. Defaults to current directory.")
+                        help="Path(s) to one or more directories to build the tree(s) at." +
+                        "Defaults to current directory.")
 
 def main(argv = sys.argv[1:]):
     """Runs the program."""
@@ -44,7 +45,7 @@ def create_tree(path: str) -> TreeItem:
     # empty directory
     rpath = os.path.realpath(path)
     name = os.path.split(rpath)[1]
-    if not (os.path.isdir(rpath) or os.listdir(rpath)):
+    if not os.path.isdir(rpath) or not os.listdir(rpath):
         ti = TreeItem(name=name, isdir=False, children=[])
         return ti
 
