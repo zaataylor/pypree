@@ -15,7 +15,8 @@ def main(argv = sys.argv[1:]):
     """Runs the program."""
     args = argparser.parse_args(argv)
 
-    print(args)
+    for path in args.path:
+        print(print_tree(create_tree(path=path), indent=0))
 
 class TreeItem(object):
     name = None
@@ -26,6 +27,13 @@ class TreeItem(object):
         self.name = name
         self.isdir = isdir
         self.children = children
+
+    def __repr__(self):
+        pass
+
+    def __str__(self):
+        return print_tree(self, indent=0)
+
 
 def create_tree(path: str) -> TreeItem:
     """Creates a tree-like representation of the directory at `path`."""
@@ -55,9 +63,14 @@ def create_tree(path: str) -> TreeItem:
 
     return TreeItem(name=name, isdir=True, children=children)
 
-def print_tree(tree_root: TreeItem):
+def print_tree(ti: TreeItem, indent: int) -> str:
     """Prints a representation of a TreeItem."""
-    pass
+    tree_string = "│\t" * indent + "│\n" + "\t" * indent + "├── " + ti.name + "\n"
+        
+    indent += 1
+    for child in ti.children:
+        tree_string += print_tree(child, indent=indent)
+    return tree_string
 
 def get_next(it: Iterator):
     """Wrapper on walk iterator __next__ method."""
