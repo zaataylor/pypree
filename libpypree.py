@@ -19,6 +19,7 @@ def main(argv = sys.argv[1:]):
         print(print_tree(create_tree(path=path), indent=0))
 
 class TreeItem(object):
+    """Represents an item in the tree."""
     name = None
     isdir = False
     children = []
@@ -65,11 +66,27 @@ def create_tree(path: str) -> TreeItem:
 
 def print_tree(ti: TreeItem, indent: int) -> str:
     """Prints a representation of a TreeItem."""
-    tree_string = "│\t" * indent + "│\n" + "\t" * indent + "├── " + ti.name + "\n"
-        
-    indent += 1
-    for child in ti.children:
-        tree_string += print_tree(child, indent=indent)
+    indent_val = indent
+    tree_string = ""
+    if indent_val == 0:
+        tree_string = ti.name + "\n"
+        indent += 1
+        tree_string += print_tree(ti=ti, indent=indent)
+    elif indent_val == 1:
+        indent += 1
+        for index, child in enumerate(ti.children):
+            # end child has "└──"
+            if index == len(ti.children) - 1:
+                tree_string = "└──" + child.name + "\n"
+            else:
+            # other children have "├──" 
+                tree_string = "├──" + child.name + "\n"
+            tree_string += print_tree(ti=child, indent=indent)
+    else:
+        while(indent_val > 1):
+            tree_string += "│   "
+            indent_val -= 1
+        tree_string += print_tree(ti=ti, indent=indent_val)
     return tree_string
 
 def get_next(it: Iterator):
