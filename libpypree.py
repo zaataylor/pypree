@@ -10,7 +10,7 @@ argparser.add_argument("-p",
                         nargs="+",
                         default=".",
                         help="Path(s) to one or more directories to build the tree(s) at." +
-                        "Defaults to current directory.")
+                        " Defaults to current directory.")
 
 def main(argv = sys.argv[1:]):
     """Runs the program."""
