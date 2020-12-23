@@ -69,24 +69,20 @@ def print_tree(ti: TreeItem, indent: int) -> str:
     indent_val = indent
     tree_string = ""
     if indent_val == 0:
-        tree_string = ti.name + "\n"
-        indent += 1
-        tree_string += print_tree(ti=ti, indent=indent)
-    elif indent_val == 1:
-        indent += 1
+        tree_string += ti.name + "\n"
+        tree_string += print_tree(ti=ti, indent=indent + 1)
+    else:
+        vert_bars = "│   " * (indent_val - 1)
         for index, child in enumerate(ti.children):
-            # end child has "└──"
-            if index == len(ti.children) - 1:
-                tree_string = "└──" + child.name + "\n"
+            # end child has "└──" if it lacks children
+            if index == len(ti.children) - 1 and not child.children:
+                tree_string += vert_bars + "└── " + child.name + "\n"
             else:
             # other children have "├──" 
-                tree_string = "├──" + child.name + "\n"
-            tree_string += print_tree(ti=child, indent=indent)
-    else:
-        while(indent_val > 1):
-            tree_string += "│   "
-            indent_val -= 1
-        tree_string += print_tree(ti=ti, indent=indent_val)
+                tree_string += vert_bars + "├── " + child.name + "\n"
+
+            tree_string += print_tree(ti=child, indent=indent + 1)
+
     return tree_string
 
 def get_next(it: Iterator):
