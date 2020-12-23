@@ -16,7 +16,7 @@ def main(argv = sys.argv[1:]):
     args = argparser.parse_args(argv)
 
     for path in args.path:
-        print(print_tree(create_tree(path=path), indent=0))
+        print(create_tree(path=path))
 
 class TreeItem(object):
     """Represents an item in the tree."""
@@ -30,6 +30,7 @@ class TreeItem(object):
         self.children = children
 
     def __repr__(self):
+        #TODO: implement this
         pass
 
     def __str__(self):
@@ -68,10 +69,13 @@ def print_tree(ti: TreeItem, indent: int) -> str:
     """Prints a representation of a TreeItem."""
     indent_val = indent
     tree_string = ""
+    # Case: root TreeItem
     if indent_val == 0:
         tree_string += ti.name + "\n"
         tree_string += print_tree(ti=ti, indent=indent + 1)
     else:
+        # one less than the total number of indents, so that
+        # the special "└──" or "├── " will fill the last spot
         vert_bars = "│   " * (indent_val - 1)
         for index, child in enumerate(ti.children):
             # end child has "└──" if it lacks children
