@@ -11,46 +11,61 @@ argparser.add_argument("-p",
                         default=".",
                         help="Path(s) to one or more directories to build the tree(s) at." +
                         " Defaults to current directory.")
+argparser.add_argument("-a",
+                       "--all",
+                        action="store_true",
+                        help="Specify this option to also include hidden files and directories" + 
+                        " in the final output.")
 
 def main(argv = sys.argv[1:]):
     """Runs the program."""
     args = argparser.parse_args(argv)
 
+    show_hidden = args.all if args.all else False
     for path in args.path:
-        print(create_tree(path=path))
+        print(create_tree(path=path, show_hidden=show_hidden))
 
 class TreeItem(object):
     """Represents an item in the tree."""
     name = None
     isdir = False
     children = []
+    # direct number of file and directory type
+    # TreeItem children
+    nfiles = ndirs = 0
 
-    def __init__(self, name: str, isdir: bool, children: List):
+    def __init__(self, name: str, isdir: bool, children: List,
+        nfiles: int, ndirs: int):
         self.name = name
         self.isdir = isdir
         self.children = children
+        self.nfiles = nfiles
+        self.ndirs = ndirs
 
     def __repr__(self):
         #TODO: implement this
         pass
 
     def __str__(self):
-        return tree_to_string(self, indent=0)
+        return tree_to_string(self, indent=0) + \
+        "\n{} directories, {} files".format(count_dirs(self), count_files(self))
 
 
-def create_tree(path: str) -> TreeItem:
+def create_tree(path: str, show_hidden=False) -> TreeItem:
     """Creates a tree-like representation of the directory at `path`."""
 
     rpath = os.path.realpath(path)
     name = os.path.split(rpath)[1]
-    
+
     # Base Cases: we have a file and not a directory, or we have an
     # empty directory
     if not os.path.isdir(rpath):
-        ti = TreeItem(name=name, isdir=False, children=[])
+        ti = TreeItem(name=name, isdir=False, children=[],
+            nfiles=0, ndirs=0)
         return ti
     elif not os.listdir(rpath):
-        ti = TreeItem(name=name, isdir=True, children=[])
+        ti = TreeItem(name=name, isdir=True, children=[],
+            nfiles=0, ndirs=0)
         return ti
 
     # Recursive case: directory with one or more children
@@ -59,16 +74,28 @@ def create_tree(path: str) -> TreeItem:
     _, dirnames, filenames = get_next(w)
     
     # add the file children first
-    for filename in filenames:
-        fc = TreeItem(name=filename, isdir=False, children=[])
+    fc_hidden = 0
+    for filename in sorted(filenames):
+        if not show_hidden and filename.startswith("."):
+            fc_hidden +=1
+            continue
+        fc = TreeItem(name=filename, isdir=False, children=[],
+            nfiles=0, ndirs=0)
         children.append(fc)
 
     # recursively add the directory children
-    for dirname in dirnames:
+    dc_hidden = 0
+    for dirname in sorted(dirnames):
+        if not show_hidden and dirname.startswith("."):
+            dc_hidden += 1
+            continue
         dirpath = os.path.join(rpath, dirname)
-        children.append(create_tree(dirpath))
+        ti = create_tree(dirpath, show_hidden=show_hidden)
+        if ti is not None:
+            children.append(ti)
 
-    return TreeItem(name=name, isdir=True, children=children)
+    return TreeItem(name=name, isdir=True, children=children,
+        nfiles=len(filenames) - fc_hidden, ndirs=len(dirnames) - dc_hidden)
 
 def tree_to_string(ti: TreeItem, indent: int) -> str:
     """Creates a string representation of a TreeItem."""
@@ -93,6 +120,20 @@ def tree_to_string(ti: TreeItem, indent: int) -> str:
             tree_string += tree_to_string(ti=child, indent=indent + 1)
 
     return tree_string
+
+def count_files(ti: TreeItem) -> int:
+    """Counts the number of TreeItems of file type below this one."""
+    if not ti.children:
+        return 0
+    else:
+        return ti.nfiles + sum([count_files(c) for c in ti.children])
+
+def count_dirs(ti: TreeItem) -> int:
+    """Counts the number of TreeItems of directory type below this one."""
+    if not ti.children:
+        return 0
+    else:
+        return ti.ndirs + sum([count_dirs(c) for c in ti.children])
 
 def get_next(it: Iterator):
     """Wrapper on walk iterator __next__ method."""
