@@ -29,15 +29,17 @@ class TreeItem(object):
     """Represents an item in the tree."""
     name = None
     isdir = False
+    parent = None
     children = []
     # direct number of file and directory type
     # TreeItem children
     nfiles = ndirs = 0
 
-    def __init__(self, name: str, isdir: bool, children: List,
+    def __init__(self, name: str, isdir: bool, parent, children: List,
         nfiles: int, ndirs: int):
         self.name = name
         self.isdir = isdir
+        self.parent = parent
         self.children = children
         self.nfiles = nfiles
         self.ndirs = ndirs
@@ -51,7 +53,7 @@ class TreeItem(object):
         "\n{} directories, {} files".format(count_dirs(self), count_files(self))
 
 
-def create_tree(path: str, show_hidden=False) -> TreeItem:
+def create_tree(path: str, parent=None, show_hidden=False) -> TreeItem:
     """Creates a tree-like representation of the directory at `path`."""
 
     rpath = os.path.realpath(path)
@@ -60,11 +62,11 @@ def create_tree(path: str, show_hidden=False) -> TreeItem:
     # Base Cases: we have a file and not a directory, or we have an
     # empty directory
     if not os.path.isdir(rpath):
-        ti = TreeItem(name=name, isdir=False, children=[],
+        ti = TreeItem(name=name, isdir=False, parent=parent, children=[],
             nfiles=0, ndirs=0)
         return ti
     elif not os.listdir(rpath):
-        ti = TreeItem(name=name, isdir=True, children=[],
+        ti = TreeItem(name=name, isdir=True, parent=parent, children=[],
             nfiles=0, ndirs=0)
         return ti
 
@@ -73,9 +75,14 @@ def create_tree(path: str, show_hidden=False) -> TreeItem:
     children = []
     _, dirnames, filenames = get_next(w)
     
+    # Form the new parent
+    new_parent = TreeItem(name=name, isdir=True, parent=parent, children=[],
+        nfiles=0, ndirs=0)
+
     # process file and directory children simultaneously
     # so output will match tree
     items = dirnames + filenames
+
     # count of hidden files and dirs, respectively
     fc_hidden = dc_hidden = 0
     for item in sorted(items):
@@ -85,17 +92,20 @@ def create_tree(path: str, show_hidden=False) -> TreeItem:
                 dc_hidden += 1
                 continue
             dc = create_tree(item_path, show_hidden=show_hidden)
+            # need this to keep dc from setting it's parent field to None
+            dc.parent = new_parent
             children.append(dc)
         else:
             if not show_hidden and item.startswith("."):
                 fc_hidden +=1
                 continue
-            fc = TreeItem(name=item, isdir=False, children=[],
+            fc = TreeItem(name=item, isdir=False, parent=new_parent, children=[],
                 nfiles=0, ndirs=0)
             children.append(fc)
-
-    return TreeItem(name=name, isdir=True, children=children,
-        nfiles=len(filenames) - fc_hidden, ndirs=len(dirnames) - dc_hidden)
+   
+    return TreeItem(name=name, isdir=True, children=children, parent=None,
+            nfiles=len(filenames) - fc_hidden, ndirs=len(dirnames) - dc_hidden)
+        
 
 def tree_to_string(ti: TreeItem, indent: int) -> str:
     """Creates a string representation of a TreeItem."""
