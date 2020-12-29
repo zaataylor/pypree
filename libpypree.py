@@ -73,26 +73,26 @@ def create_tree(path: str, show_hidden=False) -> TreeItem:
     children = []
     _, dirnames, filenames = get_next(w)
     
-    # add the file children first
-    fc_hidden = 0
-    for filename in sorted(filenames):
-        if not show_hidden and filename.startswith("."):
-            fc_hidden +=1
-            continue
-        fc = TreeItem(name=filename, isdir=False, children=[],
-            nfiles=0, ndirs=0)
-        children.append(fc)
-
-    # recursively add the directory children
-    dc_hidden = 0
-    for dirname in sorted(dirnames):
-        if not show_hidden and dirname.startswith("."):
-            dc_hidden += 1
-            continue
-        dirpath = os.path.join(rpath, dirname)
-        ti = create_tree(dirpath, show_hidden=show_hidden)
-        if ti is not None:
-            children.append(ti)
+    # process file and directory children simultaneously
+    # so output will match tree
+    items = dirnames + filenames
+    # count of hidden files and dirs, respectively
+    fc_hidden = dc_hidden = 0
+    for item in sorted(items):
+        item_path = os.path.join(rpath, item)
+        if os.path.isdir(item_path):
+            if not show_hidden and item.startswith("."):
+                dc_hidden += 1
+                continue
+            dc = create_tree(item_path, show_hidden=show_hidden)
+            children.append(dc)
+        else:
+            if not show_hidden and item.startswith("."):
+                fc_hidden +=1
+                continue
+            fc = TreeItem(name=item, isdir=False, children=[],
+                nfiles=0, ndirs=0)
+            children.append(fc)
 
     return TreeItem(name=name, isdir=True, children=children,
         nfiles=len(filenames) - fc_hidden, ndirs=len(dirnames) - dc_hidden)
