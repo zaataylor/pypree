@@ -30,9 +30,11 @@ chmod +x pypree
 ```bash
 ./pypree -p {PATH}
 ```
+(Optional) If you want to display hidden files, you can also pass in the `-a`/`--all` option.
+
 The full usage information is here:
 ```bash
-usage: pypree [-h] [-p PATH [PATH ...]]
+usage: pypree [-h] [-p PATH [PATH ...]] [-a]
 
 pypree - A partial Python tree command implementation
 
@@ -41,4 +43,6 @@ optional arguments:
   -p PATH [PATH ...], --path PATH [PATH ...]
                         Path(s) to one or more directories to build the
                         tree(s) at. Defaults to current directory.
+  -a, --all             Specify this option to also include hidden files and
+                        directories in the final output.
 ```
