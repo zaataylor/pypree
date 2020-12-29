@@ -72,7 +72,7 @@ def create_tree(path: str, parent=None, show_hidden=False) -> TreeItem:
 
     # Recursive case: directory with one or more children
     w = os.walk(rpath)
-    children = []
+    # children = []
     _, dirnames, filenames = get_next(w)
     
     # Form the new parent
@@ -94,16 +94,19 @@ def create_tree(path: str, parent=None, show_hidden=False) -> TreeItem:
             dc = create_tree(item_path, show_hidden=show_hidden)
             # need this to keep dc from setting it's parent field to None
             dc.parent = new_parent
-            children.append(dc)
+            # children.append(dc)
+            new_parent.children.append(dc)
         else:
             if not show_hidden and item.startswith("."):
                 fc_hidden +=1
                 continue
             fc = TreeItem(name=item, isdir=False, parent=new_parent, children=[],
                 nfiles=0, ndirs=0)
-            children.append(fc)
+            # children.append(fc)
+            new_parent.children.append(fc)
+
    
-    return TreeItem(name=name, isdir=True, children=children, parent=None,
+    return TreeItem(name=name, isdir=True, children=new_parent.children, parent=None,
             nfiles=len(filenames) - fc_hidden, ndirs=len(dirnames) - dc_hidden)
         
 
@@ -111,25 +114,83 @@ def tree_to_string(ti: TreeItem, indent: int) -> str:
     """Creates a string representation of a TreeItem."""
     indent_val = indent
     tree_string = ""
-    # Case: root TreeItem
-    if indent_val == 0:
-        tree_string += ti.name + "\n"
-        tree_string += tree_to_string(ti=ti, indent=indent + 1)
-    else:
-        # use one less than the total number of indents, so that
-        # the special "└──" or "├── " will fill the last spot
-        vert_bars = "│   " * (indent_val - 1)
+
+    if not ti.children:
+        skip_lines = []
+        saved_ti = ti
+        # go all the way back up to the root
+        while(ti.parent is not None):
+            print("ti.name = {} | ti.parent.name = {}".format(ti.name, ti.parent.name))
+            names = [c.name for c in ti.parent.children]
+            # the child's parent is the last child of grandparent,
+            # so we skip the line that would be directly under the
+            # grandparent
+            if sorted(names)[-1] == ti.name:
+                skip_lines.append(True)
+            else:
+                skip_lines.append(False)
+            ti = ti.parent
+        ti = saved_ti
         for index, child in enumerate(ti.children):
-            # end child has "└──" if it lacks children
-            if index == len(ti.children) - 1 and not child.children:
-                tree_string += vert_bars + "└── " + child.name + "\n"
+            bars = construct_vert_bars(skip_lines)
+            print("Indent Val: {} | Skip Lines Length: {}".format(indent_val, len(skip_lines)))
+            if index == len(ti.children) - 1:
+                tree_string += bars + "└── " + child.name + "\n"
             else:
             # other children have "├──" 
-                tree_string += vert_bars + "├── " + child.name + "\n"
+                tree_string += bars + "├── " + child.name + "\n"
 
             tree_string += tree_to_string(ti=child, indent=indent + 1)
+    for child in ti.children:
+        tree_string += tree_to_string(ti=child, indent=indent+1)
+    # # Case: root TreeItem
+    # if indent_val == 0:
+    #     tree_string += ti.name + "\n"
+    #     tree_string += tree_to_string(ti=ti, indent=indent + 1)
+    # else:
+    #     # construct list of booleans where False indicates
+    #     # that we draw a vertical bar at a given position and True
+    #     # indicates that we just output a space for that position
+    #     skip_lines = []
+    #     saved_ti = ti
+    #     # go all the way back up to the root
+    #     while(ti.parent is not None):
+    #         print("ti.name = {} | ti.parent.name = {}".format(ti.name, ti.parent.name))
+    #         names = [c.name for c in ti.parent.children]
+    #         # the child's parent is the last child of grandparent,
+    #         # so we skip the line that would be directly under the
+    #         # grandparent
+    #         if sorted(names)[-1] == ti.name:
+    #             skip_lines.append(True)
+    #         else:
+    #             skip_lines.append(False)
+    #         ti = ti.parent
+    #     ti = saved_ti
+    #     # for index, child in enumerate(ti.children):
+    #     #     bars = construct_vert_bars(skip_lines)
+    #     #     print("Indent Val: {} | Skip Lines Length: {}".format(indent_val, len(skip_lines)))
+    #     #     if index == len(ti.children) - 1:
+    #     #         tree_string += bars + "└── " + child.name + "\n"
+    #     #     else:
+    #     #     # other children have "├──" 
+    #     #         tree_string += bars + "├── " + child.name + "\n"
+
+    #     #     tree_string += tree_to_string(ti=child, indent=indent + 1)
 
     return tree_string
+
+def construct_vert_bars(skip_lines: list):
+    """Constructs a series of horizontally aligned vertical bars."""
+    v_bar = "│   "
+    space = "   "
+    res = ""
+    for value in skip_lines:
+        if value:
+            res += space
+        else:
+            res += v_bar
+    print("Resulting bar is : {}".format(res))
+    return res
 
 def count_files(ti: TreeItem) -> int:
     """Counts the number of TreeItems of file type below this one."""
