@@ -13,7 +13,6 @@
 - [&check;] Function to create the Tree
     - Strategy here is to recurse down until we get a regular file (or an empty directory), then we construct a basic `TreeItem` and return it. This will be appended to the children member of the `TreeItem` corresponding to the parent of that `TreeItem`.
 - [&check;] Function(s) to calculate total count of directories and files
-- [**TODO**] Resolve issue with output using parent references to make output more tree-like
+- [&check;] Resolve issue with output using parent references to make output more tree-like
     - [&check;] Implement parent refernces
-    - [**TODO**] Use parent references in `tree_string` to control number of vertical bars on a given line
-- [**TODO**] Implement `__repr__`
+    - [&check;] Use parent references in `tree_string` to control number of vertical bars on a given line
