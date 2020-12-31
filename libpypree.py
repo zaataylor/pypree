@@ -46,10 +46,6 @@ class TreeItem(object):
         self.nfiles = nfiles
         self.ndirs = ndirs
 
-    def __repr__(self):
-        #TODO: implement this
-        pass
-
     def __str__(self):
         dir_count = count_dirs(self)
         file_count = count_files(self)
@@ -152,9 +148,9 @@ def tree_to_string(ti: TreeItem, indent: int) -> str:
                 # to left in final output), we insert bars or spaces in
                 # reverse order (i.e. insert at index 0)
                 if sorted(names)[-1] == ti.parent.name:
-                    skip_lines.insert(0, "  ")
+                    skip_lines.insert(0, "    ")
                 else:
-                    skip_lines.insert(0, "│   ")
+                    skip_lines.insert(0, "│   ")
 
             # go up one level for the next iteration
             ti = ti.parent
@@ -165,9 +161,7 @@ def tree_to_string(ti: TreeItem, indent: int) -> str:
         names = [c.name for c in ti.parent.children]
         # last child has "└──"
         if sorted(names)[-1] == ti.name:
-            # TODO: fix this problematic section
             ts = bars + "└── " + ti.name + "\n"
-            ts = ts.replace("   ", " \uc2a0\uc2a0")
             tree_string += ts
         else:
             # other children have "├──" 
